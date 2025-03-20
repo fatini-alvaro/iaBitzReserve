@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitz Reserve</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .chat-container {
+            width: 500px;
+            height: 900px;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        /* Cabeçalho do chat */
+        .chat-header {
+            background: #128C7E;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+        }
+        .chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .chat-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .chat-box {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: #e5ddd5;
+            scrollbar-width: thin;
+        }
+        .message {
+            max-width: 80%;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+        .user-message {
+            background: #dcf8c6;
+            align-self: flex-end;
+        }
+        .bot-message {
+            background: #ffffff;
+            align-self: flex-start;
+        }
+        .input-box {
+            display: flex;
+            padding: 10px;
+            background: #f0f0f0;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            font-size: 16px;
+        }
+        button {
+            margin-left: 5px;
+            padding: 10px;
+            background: #25d366;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .loading {
+            font-style: italic;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Cabeçalho do chat -->
+        <div class="chat-header">
+            <img src="https://cdn-icons-png.flaticon.com/512/147/147144.png" alt="Bot">
+            <h3>Bitz Reserve</h3>
+        </div>
+        
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-box">
+            <input type="text" id="user-input" placeholder="Digite sua mensagem..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            debugger;
+            let userInput = document.getElementById("user-input").value.trim();
+            if (userInput === "") return;
+
+            let chatBox = document.getElementById("chat-box");
+            let userMessage = document.createElement("div");
+            userMessage.classList.add("message", "user-message");
+            userMessage.innerText = userInput;
+            chatBox.appendChild(userMessage);
+
+            // Adiciona indicador de carregamento
+            let botMessage = document.createElement("div");
+            botMessage.classList.add("message", "bot-message", "loading");
+            botMessage.innerText = "Digitando...";
+            chatBox.appendChild(botMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            fetch("http://127.0.0.1:5000/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mensagem: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                botMessage.classList.remove("loading"); // Remove estilo de "digitando"
+                botMessage.innerText = data.cidade ? 
+                    `Sugestão: ${data.cidade}\n${data.descricao}\n${data.pergunta_hospedagem}` : 
+                    data.resposta;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+
+            document.getElementById("user-input").value = "";
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
